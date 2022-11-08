@@ -1,4 +1,4 @@
-import 'package:expensify/expense.dart';
+import 'package:expensify/dtos/expense.dart';
 import 'package:flutter/material.dart';
 
 class CreateExpenseDialog extends StatelessWidget {

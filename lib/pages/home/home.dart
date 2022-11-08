@@ -1,7 +1,8 @@
-import 'package:expensify/create_expense_dialog.dart';
-import 'package:expensify/expense.dart';
+import 'package:expensify/dtos/expense.dart';
+import 'package:expensify/repositories/expense_repository.dart';
 import 'package:flutter/material.dart';
 
+import 'create_expense_dialog.dart';
 import 'expense_list.dart';
 
 class Home extends StatefulWidget {
@@ -12,7 +13,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Expense> _expenses = getExpenses();
+  final ExpenseRepository _repository = ExpenseRepository();
+  late List<Expense> _expenses;
+
+  @override
+  void initState() {
+    super.initState();
+
+    updateExpenses();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +45,13 @@ class _HomeState extends State<Home> {
 
     if (newExpense == null) return;
 
-    setState(() {
-      _expenses = [..._expenses, newExpense];
-    });
+    _repository.saveExpense(newExpense);
+    updateExpenses();
   }
 
-  static List<Expense> getExpenses() {
-    return [
-      const Expense("Groceries", 15.99),
-      const Expense("Telecom", 34.99),
-    ];
+  void updateExpenses() {
+    setState(() {
+      _expenses = _repository.getExpenses();
+    });
   }
 }
