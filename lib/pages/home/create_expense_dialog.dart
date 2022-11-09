@@ -1,11 +1,16 @@
 import 'package:expensify/dtos/expense.dart';
 import 'package:flutter/material.dart';
 
-class CreateExpenseDialog extends StatelessWidget {
-  CreateExpenseDialog({super.key});
+class CreateExpenseDialog extends StatefulWidget {
+  const CreateExpenseDialog({super.key});
 
-  final titleController = TextEditingController();
-  final costController = TextEditingController();
+  @override
+  State<StatefulWidget> createState() => _CreateExpenseDialogState();
+}
+
+class _CreateExpenseDialogState extends State<CreateExpenseDialog> {
+  String? title;
+  double? value;
 
   @override
   Widget build(BuildContext context) {
@@ -19,30 +24,35 @@ class CreateExpenseDialog extends StatelessWidget {
               labelText: "Title",
             ),
             keyboardType: TextInputType.name,
-            controller: titleController,
+            onChanged: (v) => setState(() {
+              title = v;
+            }),
           ),
           TextFormField(
             decoration: const InputDecoration(
               labelText: "Cost",
             ),
             keyboardType: TextInputType.number,
-            controller: costController,
+            onChanged: (v) => setState(() {
+              value = double.parse(v);
+            }),
           ),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            final expense = Expense(
-              titleController.text,
-              double.parse(costController.text),
-            );
+          onPressed: !isAddEnabled()
+              ? null
+              : () {
+                  final expense = Expense(title!, value!);
 
-            return Navigator.of(context).pop(expense);
-          },
+                  return Navigator.of(context).pop(expense);
+                },
           child: const Text("Add"),
         ),
       ],
     );
   }
+
+  bool isAddEnabled() => title != null && value != null;
 }

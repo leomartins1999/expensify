@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final ExpenseRepository _repository = ExpenseRepository();
-  late List<Expense> _expenses;
+  late List<Expense> _expenses = [];
 
   @override
   void initState() {
@@ -38,20 +38,22 @@ class _HomeState extends State<Home> {
   }
 
   void showAddExpenseMenu(BuildContext ctx) async {
-    final newExpense = await showDialog(
+    final Expense? newExpense = await showDialog(
       context: ctx,
-      builder: (context) => CreateExpenseDialog(),
+      builder: (context) => const CreateExpenseDialog(),
     );
 
     if (newExpense == null) return;
 
-    _repository.saveExpense(newExpense);
-    updateExpenses();
+    await _repository.saveExpense(newExpense);
+    await updateExpenses();
   }
 
-  void updateExpenses() {
+  Future<void> updateExpenses() async {
+    final newExpenses = await _repository.getExpenses();
+
     setState(() {
-      _expenses = _repository.getExpenses();
+      _expenses = newExpenses;
     });
   }
 }
