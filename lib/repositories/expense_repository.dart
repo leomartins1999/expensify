@@ -16,15 +16,24 @@ class ExpenseRepository {
   Future<List<Expense>> getExpenses() async {
     final db = await database;
 
-    final List<Map<String, dynamic>> entries = await db.query("expenses");
+    final List<Map<String, dynamic>> entries = await db.query(
+      "expenses",
+      orderBy: "date DESC",
+    );
 
-    return entries.map((e) => Expense(e["title"], e["value"])).toList();
+    return entries
+        .map((e) => Expense(
+              e["title"],
+              e["value"],
+              DateTime.parse(e["date"]),
+            ))
+        .toList();
   }
 
   Future<void> saveExpense(Expense e) async {
     final db = await database;
 
-    final map = {"title": e.title, "value": e.value};
+    final map = {"title": e.title, "value": e.value, "date": e.date.toString()};
 
     await db.insert("expenses", map);
   }
@@ -32,7 +41,7 @@ class ExpenseRepository {
   static Future<Database> buildDatabase() async {
     return openDatabase(
       join(await getDatabasesPath(), "expenses.db"),
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS expenses(
@@ -42,6 +51,18 @@ class ExpenseRepository {
           );
         ''');
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        for (int i = oldVersion + 1; i <= newVersion; i++) {
+          await db.execute(migrations[i]!);
+        }
+      },
     );
   }
+
+  static Map<int, String> migrations = {
+    2: '''
+    ALTER TABLE expenses
+      ADD date TEXT NOT NULL DEFAULT '2021-11-09 00:00:00';
+    '''
+  };
 }

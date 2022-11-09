@@ -1,4 +1,5 @@
 import 'package:expensify/dtos/expense.dart';
+import 'package:expensify/utils/date_formatting.dart';
 import 'package:flutter/material.dart';
 
 class ExpenseList extends StatelessWidget {
@@ -12,6 +13,7 @@ class ExpenseList extends StatelessWidget {
       children: _expenses
           .map((e) => ListTile(
                 title: Text(e.title),
+                subtitle: Text(e.date.format()),
                 trailing: Text("${e.value.toStringAsFixed(2)} €"),
               ))
           .toList(),
