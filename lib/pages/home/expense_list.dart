@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 class ExpenseList extends StatelessWidget {
   final List<Expense> _expenses;
+  final Function onClick;
 
-  const ExpenseList(this._expenses, {super.key});
+  const ExpenseList(this._expenses, this.onClick, {super.key});
 
   @override
   Widget build(BuildContext context) => ListView(children: getListTiles());
@@ -16,6 +17,7 @@ class ExpenseList extends StatelessWidget {
               title: Text(e.title),
               subtitle: Text(e.date.format()),
               trailing: Text("${e.value.toStringAsFixed(2)} €"),
+              onTap: () => onClick(e),
             ))
         .toList();
   }

@@ -1,4 +1,5 @@
 import 'package:expensify/dtos/expense.dart';
+import 'package:expensify/pages/home/update_expense_dialog.dart';
 import 'package:expensify/repositories/expense_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -29,12 +30,53 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: const Text("expensify"),
       ),
-      body: ExpenseList(_expenses),
+      body: buildExpenseList(context),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showAddExpenseMenu(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Widget buildExpenseList(BuildContext ctx) {
+    return ExpenseList(
+      _expenses,
+      (e) => showUpdateExpenseMenu(ctx, e),
+    );
+  }
+
+  void showUpdateExpenseMenu(BuildContext ctx, Expense e) async {
+    final UpdateExpenseDialogResult? result = await showDialog(
+      context: context,
+      builder: (context) => UpdateExpenseDialog(e),
+    );
+
+    if (result == null) return;
+
+    switch (result.type) {
+      case UpdateExpenseDialogResultType.delete:
+        await deleteExpense(e);
+        break;
+      case UpdateExpenseDialogResultType.update:
+        await updateExpense(result.updatedExpense!);
+        break;
+    }
+  }
+
+  Future<void> deleteExpense(Expense e) async {
+    await _repository.deleteExpense(e.id);
+
+    showSnackbar("Deleted ${e.title} expense!");
+
+    await updateExpenses();
+  }
+
+  Future<void> updateExpense(Expense e) async {
+    await _repository.updateExpense(e);
+
+    showSnackbar("Updated ${e.title} expense!");
+
+    await updateExpenses();
   }
 
   void showAddExpenseMenu(BuildContext ctx) async {

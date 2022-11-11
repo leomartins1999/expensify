@@ -2,31 +2,48 @@ import 'package:expensify/dtos/expense.dart';
 import 'package:expensify/utils/date_formatting.dart';
 import 'package:flutter/material.dart';
 
-class CreateExpenseDialog extends StatefulWidget {
-  const CreateExpenseDialog({super.key});
+class UpdateExpenseDialog extends StatefulWidget {
+  final Expense expense;
+
+  const UpdateExpenseDialog(this.expense, {super.key});
 
   @override
-  State<StatefulWidget> createState() => _CreateExpenseDialogState();
+  State<StatefulWidget> createState() => _UpdateExpenseDialogState();
 }
 
-class _CreateExpenseDialogState extends State<CreateExpenseDialog> {
+class _UpdateExpenseDialogState extends State<UpdateExpenseDialog> {
   String title = "";
-  double value = -1;
+  double value = 0;
 
   DateTime date = DateTime.now();
-  TextEditingController dateTextController = TextEditingController(
-    text: DateTime.now().format(),
-  );
+  TextEditingController dateTextController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    final expense = widget.expense;
+
+    title = expense.title;
+    value = expense.value;
+    date = expense.date;
+
+    dateTextController = TextEditingController(text: date.format());
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Add new expense"),
+      title: const Text("Update expense"),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [buildTitleForm(), buildCostForm(), buildDateForm()],
       ),
-      actions: [buildAddButton()],
+      actions: [
+        Row(
+          children: [buildDeleteButton(), const Spacer(), buildUpdateButton()],
+        )
+      ],
     );
   }
 
@@ -39,6 +56,7 @@ class _CreateExpenseDialogState extends State<CreateExpenseDialog> {
       onChanged: (v) => setState(() {
         title = v;
       }),
+      initialValue: title,
     );
   }
 
@@ -51,6 +69,7 @@ class _CreateExpenseDialogState extends State<CreateExpenseDialog> {
       onChanged: (v) => setState(() {
         value = (v == "") ? -1 : double.parse(v);
       }),
+      initialValue: value.toStringAsFixed(2),
     );
   }
 
@@ -80,17 +99,45 @@ class _CreateExpenseDialogState extends State<CreateExpenseDialog> {
     );
   }
 
-  Widget buildAddButton() {
+  Widget buildUpdateButton() {
     onClick() {
-      final expense = Expense(title, value, date);
-      Navigator.of(context).pop(expense);
+      final updatedExpense = Expense(title, value, date, id: widget.expense.id);
+
+      Navigator.of(context).pop(UpdateExpenseDialogResult(
+        UpdateExpenseDialogResultType.update,
+        updatedExpense: updatedExpense,
+      ));
     }
 
     return TextButton(
       onPressed: isAddEnabled() ? onClick : null,
-      child: const Text("Add"),
+      child: const Text("Update"),
+    );
+  }
+
+  Widget buildDeleteButton() {
+    onClick() {
+      Navigator.of(context)
+          .pop(UpdateExpenseDialogResult(UpdateExpenseDialogResultType.delete));
+    }
+
+    return TextButton(
+      onPressed: onClick,
+      child: const Text(
+        "Delete",
+        style: TextStyle(color: Colors.red),
+      ),
     );
   }
 
   bool isAddEnabled() => title != "" && value != -1;
 }
+
+class UpdateExpenseDialogResult {
+  final UpdateExpenseDialogResultType type;
+  final Expense? updatedExpense;
+
+  UpdateExpenseDialogResult(this.type, {this.updatedExpense});
+}
+
+enum UpdateExpenseDialogResultType { update, delete }

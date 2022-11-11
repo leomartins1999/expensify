@@ -21,21 +21,25 @@ class ExpenseRepository {
       orderBy: "date DESC",
     );
 
-    return entries
-        .map((e) => Expense(
-              e["title"],
-              e["value"],
-              DateTime.parse(e["date"]),
-            ))
-        .toList();
+    return entries.map((e) => e.toExpense()).toList();
   }
 
   Future<void> saveExpense(Expense e) async {
     final db = await database;
 
-    final map = {"title": e.title, "value": e.value, "date": e.date.toString()};
+    await db.insert("expenses", e.toMap());
+  }
 
-    await db.insert("expenses", map);
+  Future<void> updateExpense(Expense e) async {
+    final db = await database;
+
+    await db.update("expenses", e.toMap(), where: "id = ?", whereArgs: [e.id]);
+  }
+
+  Future<void> deleteExpense(int expenseId) async {
+    final db = await database;
+
+    await db.delete("expenses", where: "id = ?", whereArgs: [expenseId]);
   }
 
   static Future<Database> buildDatabase() async {
@@ -65,4 +69,18 @@ class ExpenseRepository {
       ADD date TEXT NOT NULL DEFAULT '2021-11-09 00:00:00';
     '''
   };
+}
+
+extension MapExtensions on Expense {
+  Map<String, dynamic> toMap() =>
+      {"title": title, "value": value, "date": date.toString()};
+}
+
+extension ExpenseExtensions on Map<String, dynamic> {
+  Expense toExpense() => Expense(
+        this["title"],
+        this["value"],
+        DateTime.parse(this["date"]),
+        id: this["id"],
+      );
 }
