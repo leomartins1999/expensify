@@ -46,6 +46,9 @@ class _HomeState extends State<Home> {
     if (newExpense == null) return;
 
     await _repository.saveExpense(newExpense);
+
+    showSnackbar("Added ${newExpense.title} expense!");
+
     await updateExpenses();
   }
 
@@ -55,5 +58,11 @@ class _HomeState extends State<Home> {
     setState(() {
       _expenses = newExpenses;
     });
+  }
+
+  void showSnackbar(String text) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 }
